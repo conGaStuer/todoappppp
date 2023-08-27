@@ -57,8 +57,24 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
-import { v4 as uuidv4 } from "uuid";
+import { ref, onMounted } from "vue";
+
+import { db } from "@/firebase";
+import {
+  collection,
+  onSnapshot,
+  addDoc,
+  deleteDoc,
+  doc,
+  updateDoc,
+  query,
+  orderBy,
+} from "firebase/firestore";
+/*
+firebase ref
+ */
+const todoCollectionRef = collection(db, "todos");
+const todoCollectionQuery = query(todoCollectionRef, orderBy("date", "desc"));
 const todos = ref([
   // {
   //   id: "id1",
@@ -71,26 +87,45 @@ const todos = ref([
   //   done: true,
   // },
 ]);
+
+/*
+get todos
+*/
+onMounted(() => {
+  onSnapshot(todoCollectionQuery, (querySnapshot) => {
+    const fbTodo = [];
+    querySnapshot.forEach((doc) => {
+      const todo = {
+        id: doc.id,
+        content: doc.data().content,
+        done: doc.data().done,
+      };
+      fbTodo.push(todo);
+    });
+    todos.value = fbTodo;
+  });
+});
+
 const newTodoContent = ref("");
 const addTodo = () => {
-  const newTodo = {
-    id: uuidv4(),
+  addDoc(todoCollectionRef, {
     content: newTodoContent.value,
     done: false,
-  };
+    date: Date.now(),
+  });
 
-  todos.value.unshift(newTodo);
   newTodoContent.value = "";
 };
 
 const deleteTodo = (id) => {
-  console.log(id);
-  todos.value = todos.value.filter((todo) => todo.id !== id);
+  deleteDoc(doc(todoCollectionRef, id));
 };
 const toggleDone = (id) => {
-  console.log(id);
   const index = todos.value.findIndex((todo) => todo.id === id);
-  todos.value[index].done = !todos.value[index].done;
+  // Set the "capital" field of the city 'DC'
+  updateDoc(doc(todoCollectionRef, id), {
+    done: !todos.value[index].done,
+  });
 };
 </script>
 
