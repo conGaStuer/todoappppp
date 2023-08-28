@@ -221,4 +221,16 @@ body {
   text-transform: capitalize;
   top: 5px;
 }
+
+/* 
+mobile 
+*/
+
+@media only screen and (max-width: 396px) {
+  .button.is-info {
+    width: 52px;
+    height: 40px;
+    font-size: 14px;
+  }
+}
 </style>
